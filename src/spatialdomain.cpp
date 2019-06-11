@@ -2,13 +2,16 @@
 #include <cmath>
 #include "../include/spatialdomain.hpp"
 
-SpatialDom::SpatialDom(std::string filepath):
-m_directory {"./.."},
-m_sourceImg { cv::imread(filepath.c_str(), 1)}
+SpatialDom::SpatialDom(std::string filepath) : 
+m_directory{"./.."},
+m_sourceImg{cv::imread(filepath.c_str(), 1)},
+m_matType{CV_32FC3}
 {   
     if (!m_sourceImg.data) {
         std::cout << "Error: no source image data." << std::endl;
     }
+
+    m_sourceImg.convertTo(m_sourceImg, m_matType);
 }
 
 void SpatialDom::blockinesMeasure(){
@@ -16,7 +19,14 @@ void SpatialDom::blockinesMeasure(){
 }
 
 void SpatialDom::activityMeasure(){
-    // TODO: Lucas
+    // iterates over picture tmp holds rgb channels
+    // cv::Mat test = cv::Mat(m_sourceImg.rows, m_sourceImg.cols, m_matType, cv::Scalar(0, 0, 0));
+    for (unsigned int row = 0; row < m_sourceImg.rows; row++) {
+        cv::Vec3f *ptr = m_sourceImg.ptr<cv::Vec3f>(row);
+        for (unsigned int col = 0; col < m_sourceImg.cols; col++) {
+            cv::Vec3f tmp = cv::Vec3f(ptr[col][2], ptr[col][1], ptr[col][0]);     
+        }
+    }
 }
 
 void SpatialDom::zeroCrossing(){

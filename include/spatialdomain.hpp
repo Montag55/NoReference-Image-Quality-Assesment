@@ -19,6 +19,8 @@ public:
 protected: 
     std::string m_directory;
     cv::Mat m_sourceImg;
+    int m_matType;
+    
     float m_H_blockiness;
     float m_V_blockiness;
     float m_H_activity;

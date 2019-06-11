@@ -18,6 +18,7 @@ int main(int argc, char **argv) {
 
 
     SpatialDom s(argv[1]);
+    s.activityMeasure();
     s.saveImg("test.jpg");
    
     return 0;
