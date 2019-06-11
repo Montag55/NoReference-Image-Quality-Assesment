@@ -11,11 +11,14 @@ public:
     ~SpatialDom();
     void saveImg(cv::Mat img, std::string filename);
     void saveImg(std::string filename);
+    void blockinesMeasure();
+    void activityMeasure();
+    void zeroCrossing();
+    float assesQuality();
 
-protected:
+protected: 
     std::string m_directory;
     cv::Mat m_sourceImg;
-    cv::Point m_resolution;
     float m_H_blockiness;
     float m_V_blockiness;
     float m_H_activity;
