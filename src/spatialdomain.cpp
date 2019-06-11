@@ -3,7 +3,7 @@
 #include "../include/spatialdomain.hpp"
 
 SpatialDom::SpatialDom(std::string filepath):
-m_directory {""},
+m_directory {"./.."},
 m_sourceImg { cv::imread(filepath.c_str(), 1)}
 {   
     if (!m_sourceImg.data) {

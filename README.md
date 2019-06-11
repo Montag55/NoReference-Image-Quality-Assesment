@@ -10,9 +10,13 @@ $ cmake ..
 $ make
 $ sudo make install
 ```
-To run application, nevigate to root directory and run:
+To build application, nevigate to root directory and run:
 ```
 $ mkdir build
 $ cmake ..
 $ make
+```
+To run application, run:
+```
+$ ./Quality <image filepath>
 ```
