@@ -2,6 +2,7 @@
 #define SPAIALDOMAIN_HPP
 
 #include <string>
+#include <vector>
 #include <opencv2/opencv.hpp>
 
 
@@ -15,12 +16,14 @@ public:
     void activityMeasure();
     void zeroCrossing();
     float assesQuality();
+    bool validFileformat();
 
 protected: 
     std::string m_directory;
     cv::Mat m_sourceImg;
     int m_matType;
-    
+    std::string m_filepath;
+
     float m_H_blockiness;
     float m_V_blockiness;
     float m_H_activity;

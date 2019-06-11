@@ -1,5 +1,7 @@
-#include <stdio.h>
+#include <sstream>
+#include <iostream>
 #include <string>
+#include <vector>
 #include <opencv2/opencv.hpp>
 #include "../include/spatialdomain.hpp"
 
@@ -16,10 +18,15 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-
-    SpatialDom s(argv[1]);
-    s.activityMeasure();
-    s.saveImg("test.jpg");
+    try {
+        SpatialDom s(argv[1]);
+        s.activityMeasure();
+        s.saveImg("test.jpg");
+    }
+    catch (const std::exception &){
+        std::cout << "exiting application." << std::endl;
+        return -1;
+    }
    
     return 0;
 }
