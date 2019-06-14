@@ -7,7 +7,8 @@
 SpatialDom::SpatialDom(std::string filepath) : 
 m_directory{"./.."},
 m_matType{CV_32FC3},
-m_filepath{filepath}
+m_filepath{filepath},
+m_blockSize{8}
 {   
     if(validFileformat() == true){
         m_sourceImg = cv::imread(m_filepath.c_str(), 1);
@@ -22,7 +23,10 @@ m_filepath{filepath}
         throw std::exception();
     }
 
+    // convert to 32bit float instead of 8bit pixel
     m_sourceImg.convertTo(m_sourceImg, m_matType);
+    // convert it to single channel, monochrome
+    cvtColor(m_sourceImg, m_sourceImg, 6);
 }
 
 void SpatialDom::blockinesMeasure(){
@@ -30,18 +34,36 @@ void SpatialDom::blockinesMeasure(){
 }
 
 void SpatialDom::activityMeasure(){
-    // iterates over picture tmp holds rgb channels
-    // cv::Mat test = cv::Mat(m_sourceImg.rows, m_sourceImg.cols, m_matType, cv::Scalar(0, 0, 0));
-    for (unsigned int row = 0; row < m_sourceImg.rows; row++) {
-        cv::Vec3f *ptr = m_sourceImg.ptr<cv::Vec3f>(row);
-        for (unsigned int col = 0; col < m_sourceImg.cols; col++) {
-            cv::Vec3f tmp = cv::Vec3f(ptr[col][0], ptr[col][1], ptr[col][2]);     
+    
+    float totalHorizontalDiff = 0.0f;
+    float totalVerticalDiff = 0.0f;
+    
+    for (unsigned int i = 1; i < m_sourceImg.rows; i++) {
+        float *ptr = m_sourceImg.ptr<float>(i);
+        for (unsigned int j = 1; j < m_sourceImg.cols; j++) {
+            if (j < m_sourceImg.cols - 1)
+                totalHorizontalDiff += abs(horizontalDifference(i, j));
+            if (i < m_sourceImg.rows - 1)
+                totalVerticalDiff += abs(verticalDifference(i, j));
         }
     }
+
+    m_H_activity = (1 / (m_blockSize - 1)) * ((m_blockSize / (m_sourceImg.rows * (m_sourceImg.cols - 1)) * totalHorizontalDiff) - m_H_blockiness);
+    m_V_activity = (1 / (m_blockSize - 1)) * ((m_blockSize / (m_sourceImg.cols * (m_sourceImg.rows - 1)) * totalVerticalDiff) - m_V_blockiness);
 }
 
 void SpatialDom::zeroCrossing(){
     // TODO: Whos fastes
+}
+
+float SpatialDom::horizontalDifference(int i, int j){
+    float d_h = m_sourceImg.ptr<float>(i)[j] - m_sourceImg.ptr<float>(i)[j - 1];
+    return d_h;
+}
+
+float SpatialDom::verticalDifference(int i, int j){
+    float d_v = m_sourceImg.ptr<float>(i)[j] - m_sourceImg.ptr<float>(i-1)[j];
+    return d_v;
 }
 
 float SpatialDom::assesQuality(){

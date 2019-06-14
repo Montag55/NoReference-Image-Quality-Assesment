@@ -16,6 +16,8 @@ public:
     void activityMeasure();
     void zeroCrossing();
     float assesQuality();
+    float horizontalDifference(int i, int j);
+    float verticalDifference(int i, int j);
     bool validFileformat();
 
 protected: 
@@ -23,6 +25,7 @@ protected:
     cv::Mat m_sourceImg;
     int m_matType;
     std::string m_filepath;
+    int m_blockSize;
 
     float m_H_blockiness;
     float m_V_blockiness;

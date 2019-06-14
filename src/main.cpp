@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
     try {
         SpatialDom s(argv[1]);
         s.activityMeasure();
-        s.saveImg("test.jpg");
+        //s.saveImg("test.jpg");
     }
     catch (const std::exception &){
         std::cout << "exiting application." << std::endl;
