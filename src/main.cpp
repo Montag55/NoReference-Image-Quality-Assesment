@@ -13,20 +13,31 @@ int main(int argc, char **argv) {
     // std::cout << "Subminor version : " << CV_SUBMINOR_VERSION << std::endl;
     // std::cout << "Build info : " << cv::getBuildInformation().c_str() << std::endl;
 
-    if (argc != 2){
+    /*if (argc != 2){
         printf("usage: $./Quality <Image_Path>\n");
         return -1;
     }
 
     try {
-        SpatialDom s(argv[1]);
+		std::cout << "Please input image for assessment:" << std::endl;
+		std::string filePath;
+		std::cin >> filePath;
+        SpatialDom s(filePath);
         s.activityMeasure();
-        //s.saveImg("test.jpg");
+        s.saveImg("test.jpg");
     }
     catch (const std::exception &){
         std::cout << "exiting application." << std::endl;
         return -1;
-    }
-   
+    }*/
+
+	std::cout << "Please input image for assessment:" << std::endl;
+	std::string filePath;
+	std::cin >> filePath;
+	SpatialDom s(filePath);
+	std::cout << "Quality: " << s.assessQuality()<< std::endl;
+	//s.saveImg("test.jpg");
+	system("pause");
+
     return 0;
 }

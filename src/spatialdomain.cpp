@@ -5,7 +5,7 @@
 #include "../include/spatialdomain.hpp"
 
 SpatialDom::SpatialDom(std::string filepath) : 
-m_directory{"./.."},
+/*m_directory{"./.."},*/
 m_matType{CV_32FC3},
 m_filepath{filepath},
 m_blockSize{8}
@@ -31,6 +31,32 @@ m_blockSize{8}
 
 void SpatialDom::blockinesMeasure(){
     // TODO: XIN
+
+	//horizontal blockiness 
+	//sum of differnence at horizontal boundaries
+	float totalHorizontalDiff = 0.0f;
+	uint H_boundaryNum = floor(m_sourceImg.cols / m_blockSize) - 1; 
+	for (unsigned int i = 1; i <= m_sourceImg.rows; i++) {
+		float *ptr = m_sourceImg.ptr<float>(i);
+		for (unsigned int j = 1; j <= H_boundaryNum; j++) {
+			totalHorizontalDiff += abs(horizontalDifference(i, j * m_blockSize));
+		}
+	}
+	m_H_blockiness = 1 / m_sourceImg.rows * H_boundaryNum;
+
+	//vertical blockiness 
+	//sum of differnence at vertical boundaries
+	float totalverticalDiff = 0.0f;
+	uint V_boundaryNum = floor(m_sourceImg.rows / m_blockSize) - 1;
+	for (unsigned int j = 1; j <= m_sourceImg.cols; j++) {
+		float *ptr = m_sourceImg.ptr<float>(j);
+		for (unsigned int i = 1; i <= V_boundaryNum; i++) {
+			totalHorizontalDiff += abs(verticalDifference(i * m_blockSize, j));
+		}
+	}
+	m_V_blockiness = 1 / m_sourceImg.cols * V_boundaryNum;
+
+
 }
 
 void SpatialDom::activityMeasure(){
@@ -54,6 +80,29 @@ void SpatialDom::activityMeasure(){
 
 void SpatialDom::zeroCrossing(){
     // TODO: Whos fastes
+	uint H_ZCSum = 0;
+	uint V_ZCSum = 0;
+	//horizontal zero crossing
+	for (unsigned int i = 1; i < m_sourceImg.rows; i++) {
+		float *ptr = m_sourceImg.ptr<float>(i);
+		for (unsigned int j = 1; j < m_sourceImg.cols - 1; j++) {
+			if (m_H_blockiness) {
+				H_ZCSum += 1;
+			}
+		}
+	}
+	m_H_zerocross = 1 / m_sourceImg.rows * (m_sourceImg.cols - 2) * H_ZCSum;
+
+	//vertical zero crossing
+	for (unsigned int j = 1; j < m_sourceImg.cols; j++) {
+		float *ptr = m_sourceImg.ptr<float>(j);
+		for (unsigned int i = 1; i < m_sourceImg.rows - 1; i++) {
+			if (m_V_blockiness) {
+				V_ZCSum += 1;
+			}
+		}
+	}
+	m_V_zerocross = 1 / m_sourceImg.cols * (m_sourceImg.rows - 2) * V_ZCSum;
 }
 
 float SpatialDom::horizontalDifference(int i, int j){
@@ -66,7 +115,7 @@ float SpatialDom::verticalDifference(int i, int j){
     return d_v;
 }
 
-float SpatialDom::assesQuality(){
+float SpatialDom::assessQuality(){
     float D = (m_H_blockiness + m_V_blockiness) / 2;
     float A = (m_H_activity + m_V_activity) / 2;
     float Z = (m_H_zerocross + m_V_zerocross) / 2;
@@ -78,9 +127,14 @@ float SpatialDom::assesQuality(){
     float gamma3 = 0.0054f;
 
     return (alpha + beta * pow(D, gamma1) * pow(A, gamma2) * pow(Z, gamma3));
+	//return D;
 }
 
 void SpatialDom::saveImg(cv::Mat img, std::string filename){
+	//extract directory from filePath
+	size_t splitPoint;
+	splitPoint = m_filepath.find_last_of("/\\");
+	m_directory = m_filepath.substr(0, splitPoint);
     if (cv::imwrite(m_directory + "/" + filename, img))
     {
         std::cout << "Saved image to: " << m_directory << "/" << filename << std::endl;
@@ -93,6 +147,10 @@ void SpatialDom::saveImg(cv::Mat img, std::string filename){
 }
 
 void SpatialDom::saveImg(std::string filename){
+	//extract directory from filePath
+	size_t splitPoint;
+	splitPoint = m_filepath.find_last_of("/\\");
+	m_directory = m_filepath.substr(0, splitPoint);
     if (cv::imwrite(m_directory + "/" + filename, m_sourceImg))
     {
         std::cout << "Saved image to: " << m_directory << "/" << filename << std::endl;

@@ -15,7 +15,7 @@ public:
     void blockinesMeasure();
     void activityMeasure();
     void zeroCrossing();
-    float assesQuality();
+    float assessQuality();
     float horizontalDifference(int i, int j);
     float verticalDifference(int i, int j);
     bool validFileformat();
