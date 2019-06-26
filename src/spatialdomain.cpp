@@ -31,31 +31,32 @@ m_blockSize{8}
 
 void SpatialDom::blockinesMeasure(){
     // TODO: XIN
-
-	//horizontal blockiness 
-	//sum of differnence at horizontal boundaries
 	float totalHorizontalDiff = 0.0f;
-	uint H_boundaryNum = floor(m_sourceImg.cols / m_blockSize) - 1; 
-	for (unsigned int i = 1; i <= m_sourceImg.rows; i++) {
+	float totalVerticalDiff = 0.0f;
+
+	unsigned int H_boundaryNum = floor(m_sourceImg.cols / m_blockSize) - 1;
+	unsigned int V_boundaryNum = floor(m_sourceImg.rows / m_blockSize) - 1;
+
+	for (unsigned int i = 1; i < m_sourceImg.rows; i++) {
 		float *ptr = m_sourceImg.ptr<float>(i);
-		for (unsigned int j = 1; j <= H_boundaryNum; j++) {
-			totalHorizontalDiff += abs(horizontalDifference(i, j * m_blockSize));
+		for (unsigned int j = 1; j < m_sourceImg.cols; j++) {
+			//horizontal blockiness 
+			//sum of differnence at horizontal boundaries
+			if (j <= H_boundaryNum)
+			{
+				totalHorizontalDiff += abs(horizontalDifference(i, j * m_blockSize));
+			}
+			//vertical blockiness 
+			//sum of differnence at vertical boundaries
+			if (i <= V_boundaryNum)
+			{
+				totalVerticalDiff += abs(verticalDifference(i * m_blockSize, j));
+			}
 		}
 	}
-	m_H_blockiness = 1 / m_sourceImg.rows * H_boundaryNum;
 
-	//vertical blockiness 
-	//sum of differnence at vertical boundaries
-	float totalverticalDiff = 0.0f;
-	uint V_boundaryNum = floor(m_sourceImg.rows / m_blockSize) - 1;
-	for (unsigned int j = 1; j <= m_sourceImg.cols; j++) {
-		float *ptr = m_sourceImg.ptr<float>(j);
-		for (unsigned int i = 1; i <= V_boundaryNum; i++) {
-			totalHorizontalDiff += abs(verticalDifference(i * m_blockSize, j));
-		}
-	}
-	m_V_blockiness = 1 / m_sourceImg.cols * V_boundaryNum;
-
+	m_H_blockiness = totalHorizontalDiff / m_sourceImg.rows * (H_boundaryNum - 1);
+	m_V_blockiness = totalVerticalDiff / m_sourceImg.cols * (V_boundaryNum - 1);
 
 }
 
@@ -73,36 +74,31 @@ void SpatialDom::activityMeasure(){
                 totalVerticalDiff += abs(verticalDifference(i, j));
         }
     }
-
+	
     m_H_activity = (1 / (m_blockSize - 1)) * ((m_blockSize / (m_sourceImg.rows * (m_sourceImg.cols - 1)) * totalHorizontalDiff) - m_H_blockiness);
     m_V_activity = (1 / (m_blockSize - 1)) * ((m_blockSize / (m_sourceImg.cols * (m_sourceImg.rows - 1)) * totalVerticalDiff) - m_V_blockiness);
 }
 
 void SpatialDom::zeroCrossing(){
     // TODO: Whos fastes
-	uint H_ZCSum = 0;
-	uint V_ZCSum = 0;
-	//horizontal zero crossing
+	unsigned int H_ZCSum = 0;
+	unsigned int V_ZCSum = 0;
+	
 	for (unsigned int i = 1; i < m_sourceImg.rows; i++) {
 		float *ptr = m_sourceImg.ptr<float>(i);
 		for (unsigned int j = 1; j < m_sourceImg.cols - 1; j++) {
-			if (m_H_blockiness) {
+			//horizontal zero crossing
+			if (horizontalDifference(i,j)) {
 				H_ZCSum += 1;
 			}
-		}
-	}
-	m_H_zerocross = 1 / m_sourceImg.rows * (m_sourceImg.cols - 2) * H_ZCSum;
-
-	//vertical zero crossing
-	for (unsigned int j = 1; j < m_sourceImg.cols; j++) {
-		float *ptr = m_sourceImg.ptr<float>(j);
-		for (unsigned int i = 1; i < m_sourceImg.rows - 1; i++) {
-			if (m_V_blockiness) {
+			//vertical zero crossing
+			if (verticalDifference(i,j)) {
 				V_ZCSum += 1;
 			}
 		}
 	}
-	m_V_zerocross = 1 / m_sourceImg.cols * (m_sourceImg.rows - 2) * V_ZCSum;
+	m_H_zerocross = H_ZCSum / m_sourceImg.rows * (m_sourceImg.cols - 2);
+	m_V_zerocross = V_ZCSum / m_sourceImg.cols * (m_sourceImg.rows - 2);
 }
 
 float SpatialDom::horizontalDifference(int i, int j){
@@ -116,6 +112,13 @@ float SpatialDom::verticalDifference(int i, int j){
 }
 
 float SpatialDom::assessQuality(){
+	blockinesMeasure();
+	printf("horizontal blokiness: %f, vertiacal blokiness: %f \n", m_H_blockiness, m_V_blockiness);
+	activityMeasure();
+	printf("horizontal activity: %f, vertiacal activity: %f \n", m_H_activity, m_V_activity);
+	zeroCrossing();
+	printf("horizontal zeroCrossing: %f, vertiacal zeroCrossing: %f \n", m_H_zerocross, m_V_zerocross);
+
     float D = (m_H_blockiness + m_V_blockiness) / 2;
     float A = (m_H_activity + m_V_activity) / 2;
     float Z = (m_H_zerocross + m_V_zerocross) / 2;
@@ -127,7 +130,6 @@ float SpatialDom::assessQuality(){
     float gamma3 = 0.0054f;
 
     return (alpha + beta * pow(D, gamma1) * pow(A, gamma2) * pow(Z, gamma3));
-	//return D;
 }
 
 void SpatialDom::saveImg(cv::Mat img, std::string filename){
