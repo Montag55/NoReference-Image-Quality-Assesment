@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cmath>
 #include <exception>
+#include <algorithm>
 #include "../include/spatialdomain.hpp"
 
 SpatialDom::SpatialDom(std::string filepath) : 
@@ -99,21 +100,33 @@ float SpatialDom::verticalDifference(int i, int j){
 
 float SpatialDom::assessQuality(){
 	blockinesMeasure();
-	printf("horizontal blokiness: %f, vertiacal blokiness: %f \n", m_H_blockiness, m_V_blockiness);
 	activityMeasure();
-	printf("horizontal activity: %f, vertiacal activity: %f \n", m_H_activity, m_V_activity);
 	zeroCrossing();
-	printf("horizontal zeroCrossing: %f, vertiacal zeroCrossing: %f \n", m_H_zerocross, m_V_zerocross);
 
     float D = (m_H_blockiness + m_V_blockiness) / 2;
     float A = (m_H_activity + m_V_activity) / 2;
     float Z = (m_H_zerocross + m_V_zerocross) / 2;
+
+    if (D == 0){
+        std::cout << "\nNo blocks - caused by jpeg compression - detected.\n" << std::endl;
+        throw std::exception();
+    }
+    else if(A < 0){
+        std::cout << "\nNo activity in blocks - caused by jpeg compression - detected.\n"<< std::endl;
+        A = 0.0f;
+    }
+    else{
+        printf("horizontal blokiness: %f, vertiacal blokiness: %f \n", m_H_blockiness, m_V_blockiness);
+        printf("horizontal activity: %f, vertiacal activity: %f \n", m_H_activity, m_V_activity);
+        printf("horizontal zeroCrossing: %f, vertiacal zeroCrossing: %f \n", m_H_zerocross, m_V_zerocross);
+    }
 
     float alpha = -245.9f;
     float beta = 261.9f;
     float gamma1 = -0.0240f;
     float gamma2 = 0.0160f;
     float gamma3 = 0.0054f;
+
 
     return (alpha + beta * pow(D, gamma1) * pow(A, gamma2) * pow(Z, gamma3));
 }

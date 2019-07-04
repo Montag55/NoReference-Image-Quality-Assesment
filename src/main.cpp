@@ -14,7 +14,8 @@ int main(int argc, char **argv) {
 
     try {
         SpatialDom s(argv[1]);
-        std::cout << "Quality: " << s.assessQuality() << std::endl;
+        float quality = s.assessQuality();
+        std::cout << "Estimated Quality: " << quality << std::endl;
     }
     catch (const std::exception &){
         std::cout << "exiting application." << std::endl;
