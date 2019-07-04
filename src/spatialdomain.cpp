@@ -8,7 +8,7 @@ SpatialDom::SpatialDom(std::string filepath) :
 /*m_directory{"./.."},*/
 m_matType{CV_32FC3},
 m_filepath{filepath},
-m_blockSize{8}
+m_blockSize{8.0f}
 {   
     if(validFileformat() == true){
         m_sourceImg = cv::imread(m_filepath.c_str(), 1);
@@ -23,41 +23,31 @@ m_blockSize{8}
         throw std::exception();
     }
 
-    // convert to 32bit float instead of 8bit pixel
     m_sourceImg.convertTo(m_sourceImg, m_matType);
-    // convert it to single channel, monochrome
     cvtColor(m_sourceImg, m_sourceImg, 6);
 }
 
 void SpatialDom::blockinesMeasure(){
-    // TODO: XIN
 	float totalHorizontalDiff = 0.0f;
 	float totalVerticalDiff = 0.0f;
 
 	unsigned int H_boundaryNum = floor(m_sourceImg.cols / m_blockSize) - 1;
 	unsigned int V_boundaryNum = floor(m_sourceImg.rows / m_blockSize) - 1;
 
-	for (unsigned int i = 1; i < m_sourceImg.rows; i++) {
-		float *ptr = m_sourceImg.ptr<float>(i);
-		for (unsigned int j = 1; j < m_sourceImg.cols; j++) {
-			//horizontal blockiness 
-			//sum of differnence at horizontal boundaries
-			if (j <= H_boundaryNum)
-			{
-				totalHorizontalDiff += abs(horizontalDifference(i, j * m_blockSize));
-			}
-			//vertical blockiness 
-			//sum of differnence at vertical boundaries
-			if (i <= V_boundaryNum)
-			{
-				totalVerticalDiff += abs(verticalDifference(i * m_blockSize, j));
-			}
-		}
-	}
+    for (unsigned int i = 1; i < m_sourceImg.rows; i++){
+        for (unsigned int j = 1; j < floor(m_sourceImg.cols / m_blockSize); j++){
+            totalHorizontalDiff += abs(horizontalDifference(i, j * m_blockSize));
+        }
+    }
 
-	m_H_blockiness = totalHorizontalDiff / m_sourceImg.rows * (H_boundaryNum - 1);
-	m_V_blockiness = totalVerticalDiff / m_sourceImg.cols * (V_boundaryNum - 1);
+    for (unsigned int i = 1; i < floor(m_sourceImg.rows / m_blockSize); i++){
+        for (unsigned int j = 1; j < m_sourceImg.cols; j++){
+            totalVerticalDiff += abs(verticalDifference(i * m_blockSize, j));
+        }
+    }
 
+    m_H_blockiness = totalHorizontalDiff / ((float) m_sourceImg.rows * ((float) H_boundaryNum - 1));
+    m_V_blockiness = totalVerticalDiff / ((float) m_sourceImg.cols * ((float) V_boundaryNum - 1));
 }
 
 void SpatialDom::activityMeasure(){
@@ -66,7 +56,6 @@ void SpatialDom::activityMeasure(){
     float totalVerticalDiff = 0.0f;
     
     for (unsigned int i = 1; i < m_sourceImg.rows; i++) {
-        float *ptr = m_sourceImg.ptr<float>(i);
         for (unsigned int j = 1; j < m_sourceImg.cols; j++) {
             if (j < m_sourceImg.cols - 1)
                 totalHorizontalDiff += abs(horizontalDifference(i, j));
@@ -74,31 +63,28 @@ void SpatialDom::activityMeasure(){
                 totalVerticalDiff += abs(verticalDifference(i, j));
         }
     }
-	
-    m_H_activity = (1 / (m_blockSize - 1)) * ((m_blockSize / (m_sourceImg.rows * (m_sourceImg.cols - 1)) * totalHorizontalDiff) - m_H_blockiness);
-    m_V_activity = (1 / (m_blockSize - 1)) * ((m_blockSize / (m_sourceImg.cols * (m_sourceImg.rows - 1)) * totalVerticalDiff) - m_V_blockiness);
+
+    m_H_activity = (1 / (m_blockSize - 1)) * ((m_blockSize / ((float) m_sourceImg.rows * ((float) m_sourceImg.cols - 1)) * totalHorizontalDiff) - m_H_blockiness);
+    m_V_activity = (1 / (m_blockSize - 1)) * ((m_blockSize / ((float) m_sourceImg.cols * ((float) m_sourceImg.rows - 1)) * totalVerticalDiff) - m_V_blockiness);
 }
 
 void SpatialDom::zeroCrossing(){
-    // TODO: Whos fastes
 	unsigned int H_ZCSum = 0;
 	unsigned int V_ZCSum = 0;
 	
 	for (unsigned int i = 1; i < m_sourceImg.rows; i++) {
-		float *ptr = m_sourceImg.ptr<float>(i);
-		for (unsigned int j = 1; j < m_sourceImg.cols - 1; j++) {
-			//horizontal zero crossing
-			if (horizontalDifference(i,j)) {
-				H_ZCSum += 1;
+		for (unsigned int j = 1; j < m_sourceImg.cols; j++) {
+
+            if (horizontalDifference(i, j) > 0 && j < m_sourceImg.cols - 2){
+                H_ZCSum += 1;
 			}
-			//vertical zero crossing
-			if (verticalDifference(i,j)) {
-				V_ZCSum += 1;
+            if (verticalDifference(i, j) > 0 && i < m_sourceImg.rows - 2){
+                V_ZCSum += 1;
 			}
 		}
 	}
-	m_H_zerocross = H_ZCSum / m_sourceImg.rows * (m_sourceImg.cols - 2);
-	m_V_zerocross = V_ZCSum / m_sourceImg.cols * (m_sourceImg.rows - 2);
+    m_H_zerocross = (float) H_ZCSum / (float) m_sourceImg.rows * ((float) m_sourceImg.cols - 2);
+    m_V_zerocross = (float) V_ZCSum / (float) m_sourceImg.cols * ((float) m_sourceImg.rows - 2);
 }
 
 float SpatialDom::horizontalDifference(int i, int j){
@@ -122,7 +108,7 @@ float SpatialDom::assessQuality(){
     float D = (m_H_blockiness + m_V_blockiness) / 2;
     float A = (m_H_activity + m_V_activity) / 2;
     float Z = (m_H_zerocross + m_V_zerocross) / 2;
-    
+
     float alpha = -245.9f;
     float beta = 261.9f;
     float gamma1 = -0.0240f;
