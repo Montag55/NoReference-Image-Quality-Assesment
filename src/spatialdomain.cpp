@@ -7,12 +7,12 @@
 
 SpatialDom::SpatialDom(std::string filepath) : 
 /*m_directory{"./.."},*/
-m_matType{CV_32FC3},
+m_matType{CV_32FC1},
 m_filepath{filepath},
 m_blockSize{8.0f}
 {   
     if(validFileformat() == true){
-        m_sourceImg = cv::imread(m_filepath.c_str(), 1);
+        m_sourceImg = cv::imread(m_filepath.c_str(), 0);
     }
     else{
         std::cout << "Error: image is not a JPEG." << std::endl;
@@ -25,7 +25,6 @@ m_blockSize{8.0f}
     }
 
     m_sourceImg.convertTo(m_sourceImg, m_matType);
-    cvtColor(m_sourceImg, m_sourceImg, 6);
 }
 
 void SpatialDom::blockinesMeasure(){
@@ -46,7 +45,6 @@ void SpatialDom::blockinesMeasure(){
             totalVerticalDiff += abs(verticalDifference(i * m_blockSize, j));
         }
     }
-
     m_H_blockiness = totalHorizontalDiff / ((float) m_sourceImg.rows * ((float) H_boundaryNum - 1));
     m_V_blockiness = totalVerticalDiff / ((float) m_sourceImg.cols * ((float) V_boundaryNum - 1));
 }
@@ -64,7 +62,6 @@ void SpatialDom::activityMeasure(){
                 totalVerticalDiff += abs(verticalDifference(i, j));
         }
     }
-
     m_H_activity = (1 / (m_blockSize - 1)) * ((m_blockSize / ((float) m_sourceImg.rows * ((float) m_sourceImg.cols - 1)) * totalHorizontalDiff) - m_H_blockiness);
     m_V_activity = (1 / (m_blockSize - 1)) * ((m_blockSize / ((float) m_sourceImg.cols * ((float) m_sourceImg.rows - 1)) * totalVerticalDiff) - m_V_blockiness);
 }
