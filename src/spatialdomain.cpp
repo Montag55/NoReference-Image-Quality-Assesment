@@ -6,7 +6,6 @@
 #include "../include/spatialdomain.hpp"
 
 SpatialDom::SpatialDom(std::string filepath) : 
-/*m_directory{"./.."},*/
 m_matType{CV_32FC1},
 m_filepath{filepath},
 m_blockSize{8.0f}
@@ -28,7 +27,14 @@ m_blockSize{8.0f}
 }
 
 void SpatialDom::blockinesMeasure(){
-	float totalHorizontalDiff = 0.0f;
+    /**
+     * Determines the blockiness, a measure describing differences between
+     * compression block borders. All compression blocks (8x8 pixels) are 
+     * compared to their neighbours. Differences along the borders are summed 
+     * up horizontaly and verticaly. 
+     */
+
+    float totalHorizontalDiff = 0.0f;
 	float totalVerticalDiff = 0.0f;
 
 	unsigned int H_boundaryNum = floor(m_sourceImg.cols / m_blockSize) - 1;
@@ -50,7 +56,12 @@ void SpatialDom::blockinesMeasure(){
 }
 
 void SpatialDom::activityMeasure(){
-    
+    /**
+     *  Determines the horizontal and vertical activity within compresion blocks,
+     *  to estimates the amount of blur within the compression blocks. This is done
+     *  both horizontaly and verticaly.
+     */
+
     float totalHorizontalDiff = 0.0f;
     float totalVerticalDiff = 0.0f;
     
@@ -67,6 +78,11 @@ void SpatialDom::activityMeasure(){
 }
 
 void SpatialDom::zeroCrossing(){
+    /**
+     * Determines the Zero crossing rate, being the amount of differences withing
+     * the image. This is done both horizontaly and verticaly.
+     */
+
 	unsigned int H_ZCSum = 0;
 	unsigned int V_ZCSum = 0;
 	
@@ -86,16 +102,30 @@ void SpatialDom::zeroCrossing(){
 }
 
 float SpatialDom::horizontalDifference(int i, int j){
+    /**
+     * Determines horizontal difference between two pixels
+     */
     float d_h = m_sourceImg.ptr<float>(i)[j] - m_sourceImg.ptr<float>(i)[j - 1];
     return d_h;
 }
 
 float SpatialDom::verticalDifference(int i, int j){
+    /**
+     * Determines vertical difference between two pixels
+     */
     float d_v = m_sourceImg.ptr<float>(i)[j] - m_sourceImg.ptr<float>(i-1)[j];
     return d_v;
 }
 
 float SpatialDom::assessQuality(){
+    /**
+     * calls each quality meassure and estimates the overall quality estimate by
+     * computing a weighted sum of all horizantal and vertical measurements. If no
+     * blocks are detected, no compression is detected and quality estimation is 
+     * pointless. If no activity is detected (all blocks are uniform color), quality
+     * estimation is pointless.
+     */
+
 	blockinesMeasure();
 	activityMeasure();
 	zeroCrossing();
@@ -129,8 +159,11 @@ float SpatialDom::assessQuality(){
 }
 
 void SpatialDom::saveImg(cv::Mat img, std::string filename){
-	//extract directory from filePath
-	size_t splitPoint;
+    /** 
+     * overloaded convenience function to save an image.
+     */
+    
+    size_t splitPoint;
 	splitPoint = m_filepath.find_last_of("/\\");
 	m_directory = m_filepath.substr(0, splitPoint);
     if (cv::imwrite(m_directory + "/" + filename, img))
@@ -145,8 +178,10 @@ void SpatialDom::saveImg(cv::Mat img, std::string filename){
 }
 
 void SpatialDom::saveImg(std::string filename){
-	//extract directory from filePath
-	size_t splitPoint;
+    /** 
+     * convenience function to save an image 
+     */
+    size_t splitPoint;
 	splitPoint = m_filepath.find_last_of("/\\");
 	m_directory = m_filepath.substr(0, splitPoint);
     if (cv::imwrite(m_directory + "/" + filename, m_sourceImg))
@@ -161,6 +196,11 @@ void SpatialDom::saveImg(std::string filename){
 }
 
 bool SpatialDom::validFileformat(){
+    /**
+     * simply checks file suffix. If file is not .jpeg or .jpg 
+     * image is not suitable for quaqlity assesment.
+     */
+
     std::string fileformat;
     std::stringstream ss(m_filepath);
     std::string token;

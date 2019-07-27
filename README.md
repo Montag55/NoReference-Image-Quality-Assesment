@@ -24,6 +24,16 @@ To run application, run:
 ```
 $ ./Quality <image filepath>
 ```
+Test images are provided in *./TestImages*. The Boat image with five different compression levels, compressed with GIMP, are provided. The file name ending discribes the comnpression level by GIMP (100 being no compression - 1 being the heighest compression level).  
+
+The usage is very simple:
+```
+// instantiate SpactialDom class
+SpatialDom s("<filepath>");
+
+// to assess the quality of the image
+s.assessQuality();
+```
 
 
 

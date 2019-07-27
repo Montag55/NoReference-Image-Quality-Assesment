@@ -22,13 +22,5 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-	// std::cout << "Please input image for assessment:" << std::endl;
-	// std::string filePath;
-	// std::cin >> filePath;
-	// SpatialDom s(filePath);
-	// std::cout << "Quality: " << s.assessQuality()<< std::endl;
-	// //s.saveImg("test.jpg");
-	// system("pause");
-
     return 0;
 }
