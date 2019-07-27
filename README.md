@@ -1,6 +1,6 @@
 
 # NoReference-Image-Quality-Assesment
-This is an implementation of the proposed no reference image quality assesment of JPEG compressed images as presented in [[1]](https://live.ece.utexas.edu/publications/2002/zw_icip_2002_norefjpeg.pdf).  
+This is an implementation of the proposed no-reference perceptual image quality assesment of JPEG compressed images as presented in [[1]](https://live.ece.utexas.edu/publications/2002/zw_icip_2002_norefjpeg.pdf).  
 
 The output is the estimated quality of the image. The higher the estimated quality value, the better. An image is evaluated on the basis of differences between the border of compression blocks (8x8 pixels - jpeg compression), inner block activity measuring the differences between neighbouring pixels to evaluating the amount of blur and lastly the total amount of differences between pixels. These measurements are determined both horizontaly and verticaly and weighted to determin the final quality estimate.
 
